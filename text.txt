@@ -1,0 +1,641 @@
+Apriori:
+1. Decision Tree: ARFF loader -> class assigner -> cross validation fold maker -> J48 -> Graph viewer -> Text Viewer
+
+2. Naive Bayes: ARFF loader -> class assigner -> cross validation fold maker -> NaiveBayes -> classifier performance evaluator -> text viewer
+
+3. K-Means: ARFF loader -> Training set maker -> SImple KMeans -> Cluster Performance Evaluator -> text viewer
+
+4. Agglomerative: ARFF loader -> Training set maker -> Hierarchical cluster -> cluster performance evaluator -> text viewer
+
+5. Apriori: ARFF loader -> class assigned -> cross validation fold maker -> Apriori -> text viewer
+
+6. FP Growth: ARFF Loader -> training set maker -> FP Growth -> Text viewer
+ 
+
+1. K-Means
+import math
+import random
+import matplotlib.pyplot as plt
+
+def euclidean(p1,p2):
+    return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
+def mean_point(cluster):
+    x_total = sum(point[0] for point in cluster)
+    y_total = sum(point[1] for point in cluster)
+    return [round(x_total / len(cluster),2), round(y_total / len(cluster),2)]
+
+user_input = input("Enter the 2D coordinated separated by semicolon (e.g. 1 1; 2 2;.....: ")
+arr = [list(map(float, pair.strip().split())) for pair in user_input.strip().split(';')]
+k1,k2 = random.sample(arr,2)
+
+print("The Initial Centroids are: ")
+print("k1: ",k1)
+print("k2: ",k2)
+
+while True:
+    k1new = []
+    k2new = []
+    
+    for point in arr:
+        d1 = euclidean(point,k1)
+        d2 = euclidean(point,k2)
+
+        if d1 <= d2:
+            k1new.append(point)
+        else:
+            k2new.append(point)
+
+    print("The Clusters are: ");
+    print("k1: :",k1new)
+    print("k2: :",k2new)
+
+    m1 = mean_point(k1new)
+    m2 = mean_point(k2new)
+
+    print("The centroids are: ")
+    print("m1: ",m1)
+    print("m2: ",m2)
+    print()
+
+    if m1 == k1 and m2 == k2:
+        print("The Final Clusters are: ")
+        print("k1: ",k1new)
+        print("k2: ",k2new)
+        print("The final Centroids are: ")
+        print("m1: ",m1)
+        print("m2: ",m2)
+        break
+
+    k1 = m1
+    k2 = m2
+
+x1 = [p[0] for p in k1new]
+y1 = [p[1] for p in k1new]
+
+x2 = [p[0] for p in k2new]
+y2 = [p[1] for p in k2new]
+
+plt.scatter(x1,y1,color='blue', label='Cluster 1')
+plt.scatter(x2,y2,color='green', label='Cluster 2')
+
+plt.scatter(m1[0], m1[1], color='red',marker='x',s=100,label = 'Centroid 1')
+plt.scatter(m2[0], m2[1], color='orange',marker='x',s=100,label = 'Centroid 2')
+
+plt.title('K-Means 2D clustering')
+plt.xlabel('X-Axis')
+plt.ylabel('Y-Axis')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+2. Agglomerative 
+import math
+
+def euclidean(p1, p2): 
+    x1, y1 = p1
+    x2, y2 = p2 
+    return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+
+def cluster_distance(c1, c2): 
+    return min/max(euclidean(p1, p2) for p1 in c1 for p2 in c2)
+    //return sum(euclidean(p1,p2) for p1 in c1 for p2 in c2 ) / (len(c1) * len(c2))
+
+def agglomerative_clustering(data, k): 
+    clusters = [[point] for point in data] 
+    while len(clusters) > k: 
+        min_dist = float('inf') 
+        pair_to_merge = (0, 1) 
+        for i in range(len(clusters)): 
+            for j in range(i + 1, len(clusters)): 
+                dist = cluster_distance(clusters[i], clusters[j])  
+                if dist < min_dist: 
+                    min_dist = dist 
+                    pair_to_merge = (i, j) 
+        i, j = pair_to_merge 
+        clusters[i].extend(clusters[j]) 
+        clusters.pop(j) 
+    return clusters 
+
+n = int(input("Enter number of data points: ")) 
+data = [] 
+print("Enter each point (x y):") 
+for _ in range(n): 
+    x, y = map(float, input().split()) 
+    data.append([x, y]) 
+
+k = int(input("Enter number of clusters: ")) 
+clusters = agglomerative_clustering(data, k) 
+
+print("\nClusters:")
+for idx, cluster in enumerate(clusters, 1): 
+    print(f"Cluster {idx}: {cluster}")
+
+
+
+3. Linear Regression
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_excel(r'C:\Users\Dell\OneDrive\Desktop\Linear_Regression.xlsx')
+
+X = df.iloc[:,0].tolist()
+Y = df.iloc[:,1].tolist()
+
+x_bar = sum(X)/len(X)
+y_bar = sum(Y)/len(Y)
+
+print(f"The x_bar value = {x_bar}")
+print(f"The y_bar value = {y_bar}")
+
+numerator = sum((x - x_bar) * (y-y_bar) for x, y in zip(X,Y))
+denominator = sum((x - x_bar)**2 for x in X)
+beta = numerator / denominator
+
+alpha = y_bar - beta * x_bar
+
+print(f"\nβ (slope) = {beta:.2f}")
+print(f"α (intercept) = {alpha:.2f}")
+print(f"Linear Regression Equation y = {alpha:.2f} - {beta:.2f}x")
+
+plt.figure(figsize=(8,5))
+plt.scatter(X,Y,color='blue', label='Data Points')
+
+x_input = float(input("Enter the value of X to predict Y: "))
+predicted_y = alpha + beta * x_input
+print(f"The predicted value of Y for {x_input:.2f} = {predicted_y:.2f}")
+
+x_line = list(range(min(X), max(X) + 1))
+y_line = [alpha + beta * x for x in x_line]
+
+plt.plot(x_line,y_line, color = 'red', label='Regression Line')
+
+plt.title("Linear Regression")
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+
+4. Data Discretization
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+df = pd.read_excel(r'C:\Users\Dell\OneDrive\Desktop\Data Discretization.xlsx')
+data = df['Values']
+
+num_bins = 4
+
+min_value = data.min()
+max_value = data.max()
+bin_width = (max_value - min_value) / num_bins
+bins = [min_value + i * bin_width for i in range(num_bins + 1)]
+
+labels = [f"Bin {i+1}" for i in range (num_bins)]
+
+discretized_data = pd.cut(data, bins = bins, labels = labels, include_lowest = True)
+
+print("Original Data")
+print(data.values)
+
+print("\nOriginal Value -> Bin Label")
+for original, labels in zip(data, discretized_data):
+    print(f"{original} -> {labels}")
+
+bin_counts = discretized_data.value_counts().sort_index()
+
+plt.figure(figsize = (6,4))
+bin_counts.plot(kind='bar', color = 'green', edgecolor = 'black')
+plt.title("Number of values in each bin")
+plt.xlabel("Bins")
+plt.ylabel("Count")
+plt.grid(axis='y', linestyle = '--', alpha = 0.6)
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize = (8,5))
+plt.hist(data, bins = 10, edgecolor = 'black', alpha = 0.7, label='Original Data')
+for bin_edge in bins:
+    plt.axvline(x = bin_edge, color = 'red', linestyle = '--')
+plt.title("Histogram of original data with bin edges")
+plt.xlabel("Value")
+plt.ylabel("Frequency")
+plt.grid(axis = 'y', linestyle = '--', alpha = 0.6)
+plt.tight_layout()
+plt.show()
+
+
+5. Naive Bayes
+import pandas as pd
+
+df = pd.read_excel(r'C:\Users\Dell\OneDrive\Desktop\data.xlsx')
+data = df.to_dict(orient = 'records')
+
+#target Value = Yes or No
+def calculate_prior(data, target_value):
+    count = sum(1 for item in data if item['play'].lower() == target_value.lower())
+    return count / len(data)
+
+def calculate_likelihood(data, feature_value, feature_name, target_value):
+    count_feature_and_target = sum(
+        1 for item in data if item[feature_name].lower() == feature_value.lower() and item['play'].lower() == target_value.lower()
+    )
+    count_target = sum(1 for item in data if item['play'].lower() == target_value.lower())
+    unique_vals = len(set(item[feature_name].lower() for item in data))
+
+    return (count_feature_and_target + 1) / (count_target + unique_vals)
+
+def predict(data, input_data):
+    prior_yes = calculate_prior(data, 'yes')
+    prior_no = calculate_prior(data, 'no')
+
+    print(f"\nPrior Probabilities: ")
+    print(f"P(yes) = {prior_yes:.3f}")
+    print(f"P(no) = {prior_no:.3f}")
+
+    prob_yes = prior_yes
+    prob_no = prior_no
+
+    print("\nLikelihoods for Yes: ")
+    for feature, value in input_data.items():
+        likelihood = calculate_likelihood(data, value, feature, 'yes')
+        print(f"P({feature} = {value}) | Plays (Yes) = {likelihood:.3f}")
+        prob_yes *= likelihood
+    
+    print("\nLikelihoods for No: ")
+    for feature, value in input_data.items():
+        likelihood = calculate_likelihood(data, value, feature, 'no')
+        print(f"P({feature} = {value}) | Plays (No) = {likelihood:.3f}")
+        prob_no *= likelihood
+
+    print("\nFinal Probabilities: ")
+    print(f"P(plays = yes) | input = {prob_yes:.3f}")
+    print(f"P(plays = no) | input = {prob_no:.3f}")
+
+    return 'Yes' if prob_yes > prob_no else 'No'
+
+print("Enter the Weather Conditions: ")
+outlook = input("Outlook (Sunny/Overcast/Rainy): ").strip().lower()
+temperature = input("Temp (Hot/Mild/Cool): ").strip().lower()
+humidity = input("Humidity (High/Normal): ").strip().lower()
+wind = input("Wind (Weak/Strong): ").strip().lower()
+
+input_data = {
+    'outlook' : outlook,
+    'temperature' : temperature,
+    'humidity' : humidity,
+    'wind' : wind
+}
+
+prediction = predict(data,input_data)
+print(f"Prediction for {input_data}: will play -> {prediction}")
+
+
+
+6. Decision Tree
+import math
+
+# Data
+data = { 
+    'Age': ['youth', 'youth', 'middle-aged', 'senior', 'senior', 'senior', 'middle-aged', 'youth', 'youth', 'senior', 'youth', 'middle-aged', 'middle-aged', 'senior'], 
+    'Income': ['high', 'high', 'high', 'medium', 'low', 'low', 'low', 'medium', 'low', 'medium', 'medium', 'medium', 'high', 'medium'], 
+    'Student': ['no', 'no', 'no', 'no', 'yes', 'yes', 'yes', 'no', 'yes', 'yes', 'yes', 'yes', 'yes', 'no'], 
+    'Credit_rating': ['fair', 'excellent', 'fair', 'fair', 'fair', 'excellent', 'excellent', 'fair', 'fair', 'fair', 'excellent', 'excellent', 'fair', 'excellent'], 
+    'Buys_Computer': ['no', 'no', 'yes', 'yes', 'yes', 'no', 'yes', 'no', 'yes', 'yes', 'yes', 'yes', 'yes', 'no'] 
+}
+
+features = ['Age', 'Income', 'Student', 'Credit_rating']
+target = 'Buys_Computer'
+
+# === Helper Functions ===
+
+def entropy_of_dataset_Info_D(dataset):
+    """Calculate entropy of the target values in the dataset."""
+    yes_count = dataset[target].count('yes')
+    no_count = dataset[target].count('no')
+    total = yes_count + no_count
+
+    if total == 0:
+        return 0
+
+    p_yes = yes_count / total
+    p_no = no_count / total
+
+    entropy = 0
+    if p_yes > 0:
+        entropy -= p_yes * math.log2(p_yes)
+    if p_no > 0:
+        entropy -= p_no * math.log2(p_no)
+
+    print(f"→ Entropy of dataset: {entropy:.4f}")
+    return entropy
+
+def entropy_after_split(dataset, feature):
+    """Compute expected entropy after splitting on a feature."""
+    total = len(dataset[target])
+    values = set(dataset[feature])
+    entropy = 0
+
+    for val in values:
+        subset_yes = 0
+        subset_no = 0
+        subset_total = 0
+
+        for i in range(total):
+            if dataset[feature][i] == val:
+                subset_total += 1
+                if dataset[target][i] == 'yes':
+                    subset_yes += 1
+                else:
+                    subset_no += 1
+
+        if subset_total == 0:
+            continue
+
+        p_yes = subset_yes / subset_total
+        p_no = subset_no / subset_total
+        subset_entropy = 0
+        if p_yes > 0:
+            subset_entropy -= p_yes * math.log2(p_yes)
+        if p_no > 0:
+            subset_entropy -= p_no * math.log2(p_no)
+
+        entropy += (subset_total / total) * subset_entropy
+
+    return entropy
+
+def info_gain(dataset, base_entropy, feature):
+    """Information Gain from splitting on a feature."""
+    gain = base_entropy - entropy_after_split(dataset, feature)
+    print(f"Information Gain ({feature}): {gain:.4f}")
+    return gain
+
+def get_best_feature(dataset, features, base_entropy):
+    """Select the feature with the highest information gain."""
+    best = None
+    max_gain = -1
+    for feature in features:
+        gain = info_gain(dataset, base_entropy, feature)
+        if gain > max_gain:
+            max_gain = gain
+            best = feature
+    return best
+
+def majority_class(labels):
+    """Return the most common class label."""
+    freq = {}
+    for label in labels:
+        freq[label] = freq.get(label, 0) + 1
+    return max(freq, key=freq.get)
+
+# === Tree Builder ===
+
+def build_tree(dataset, features):
+    # If all target values are the same
+    if dataset[target].count(dataset[target][0]) == len(dataset[target]):
+        return dataset[target][0]
+
+    # If no more features, return majority class
+    if not features:
+        return majority_class(dataset[target])
+
+    base_entropy = entropy_of_dataset(dataset)
+    best_feature = get_best_feature(dataset, features, base_entropy)
+    tree = {best_feature: {}}
+    print(f"\nBest feature to split: {best_feature}\n")
+
+    unique_vals = set(dataset[best_feature])
+
+    for val in unique_vals:
+        # Create subset for this value
+        subset = {k: [] for k in dataset}
+        for i in range(len(dataset[best_feature])):
+            if dataset[best_feature][i] == val:
+                for k in dataset:
+                    subset[k].append(dataset[k][i])
+
+        remaining_features = [f for f in features if f != best_feature]
+        subtree = build_tree(subset, remaining_features)
+        tree[best_feature][val] = subtree
+
+    return tree
+
+# === Run ===
+
+decision_tree = build_tree(data, features)
+print("\nFinal Decision Tree:")
+print(decision_tree)
+
+
+7. Apriori
+from itertools import combinations
+import matplotlib.pyplot as plt
+
+# Sample transactions
+transactions = [
+    ['I1', 'I2', 'I5'],
+    ['I2', 'I4'],
+    ['I2', 'I3'],
+    ['I1', 'I2', 'I4'],
+    ['I1', 'I3'],
+    ['I2', 'I3'],
+    ['I1', 'I3'],
+    ['I1', 'I2', 'I3', 'I5'],
+    ['I1', 'I2', 'I3']
+]
+
+# Minimum support threshold
+min_support = 2
+
+# === Step 1: Count support for 1-itemsets ===
+def get_frequent_1_itemsets(transactions, min_support):
+    item_counts = {}
+    for transaction in transactions:
+        for item in transaction:
+            item_counts[item] = item_counts.get(item, 0) + 1
+    return { (item,): count for item, count in item_counts.items() if count >= min_support }
+
+# === Step 2: Generate candidates of size k ===
+def generate_candidates(prev_frequent_itemsets, k):
+    items = set()
+    for itemset in prev_frequent_itemsets:
+        items.update(itemset)
+    return list(combinations(sorted(items), k))
+
+# === Step 3: Count support for candidate itemsets ===
+def filter_frequent_itemsets(transactions, candidates, min_support):
+    support_count = {c: 0 for c in candidates}
+    for transaction in transactions:
+        transaction_set = set(transaction)
+        for c in candidates:
+            if set(c).issubset(transaction_set):
+                support_count[c] += 1
+    return {itemset: count for itemset, count in support_count.items() if count >= min_support}
+
+# === Apriori Main Algorithm ===
+def apriori(transactions, min_support):
+    all_frequent = []
+
+    # Frequent 1-itemsets
+    current_frequent = get_frequent_1_itemsets(transactions, min_support)
+    all_frequent.append(current_frequent)
+
+    k = 2
+    while current_frequent:
+        candidates = generate_candidates(current_frequent, k)
+        current_frequent = filter_frequent_itemsets(transactions, candidates, min_support)
+        if current_frequent:
+            all_frequent.append(current_frequent)
+        k += 1
+
+    return all_frequent
+
+# === Run and Display ===
+frequent_itemsets = apriori(transactions, min_support)
+
+# Print results
+for level, itemsets in enumerate(frequent_itemsets, start=1):
+    print(f"\nFrequent {level}-itemsets:")
+    for itemset, count in itemsets.items():
+        print(f"{itemset}: {count}")
+
+# === Bar Plot ===
+labels, counts = [], []
+for itemsets in frequent_itemsets:
+    for itemset, count in itemsets.items():
+        labels.append(', '.join(itemset))
+        counts.append(count)
+
+plt.figure(figsize=(10, 5))
+plt.bar(labels, counts, color='lightgreen', edgecolor='black')
+plt.title("Support Count of Frequent Itemsets")
+plt.xlabel("Itemsets")
+plt.ylabel("Support")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+8. FP Growth
+class TreeNode:
+    def __init__(self, item, count, parent):
+        self.item = item
+        self.count = count
+        self.parent = parent
+        self.children = {}
+        self.link = None  # next node with same item
+
+    def increment(self, count):
+        self.count += count
+
+def build_header_table(transactions, min_support):
+    item_counts = {}
+    for transaction in transactions:
+        for item in transaction:
+            item_counts[item] = item_counts.get(item, 0) + 1
+
+    header_table = {}
+    for item, count in item_counts.items():
+        if count >= min_support:
+            header_table[item] = [count, None]  # [count, head of node link]
+    return header_table
+
+def sort_items(transaction, header_table):
+    return sorted(
+        [item for item in transaction if item in header_table],
+        key=lambda item: (-header_table[item][0], item)
+    )
+
+def insert_tree(transaction, node, header_table):
+    if not transaction:
+        return
+
+    first_item = transaction[0]
+    if first_item in node.children:
+        node.children[first_item].increment(1)
+    else:
+        new_node = TreeNode(first_item, 1, node)
+        node.children[first_item] = new_node
+
+        # Link header table
+        if header_table[first_item][1] is None:
+            header_table[first_item][1] = new_node
+        else:
+            current = header_table[first_item][1]
+            while current.link:
+                current = current.link
+            current.link = new_node
+
+    insert_tree(transaction[1:], node.children[first_item], header_table)
+
+def build_fp_tree(transactions, min_support):
+    header_table = build_header_table(transactions, min_support)
+    if not header_table:
+        return None, None
+
+    root = TreeNode(None, 1, None)
+
+    for transaction in transactions:
+        ordered_items = sort_items(transaction, header_table)
+        insert_tree(ordered_items, root, header_table)
+
+    return root, header_table
+
+def find_prefix_paths(base_item, node):
+    conditional_patterns = []
+    while node:
+        path = []
+        parent = node.parent
+        while parent and parent.item:
+            path.append(parent.item)
+            parent = parent.parent
+        if path:
+            conditional_patterns.append((list(reversed(path)), node.count))
+        node = node.link
+    return conditional_patterns
+
+def mine_fp_tree(header_table, prefix, min_support, frequent_patterns):
+    sorted_items = sorted(header_table.items(), key=lambda x: x[1][0])
+    for item, (count, node) in sorted_items:
+        new_pattern = prefix + [item]
+        frequent_patterns.append((new_pattern, count))
+
+        conditional_patterns = find_prefix_paths(item, node)
+        conditional_transactions = []
+        for pattern, count in conditional_patterns:
+            conditional_transactions.extend([pattern] * count)
+
+        subtree, sub_header = build_fp_tree(conditional_transactions, min_support)
+        if sub_header:
+            mine_fp_tree(sub_header, new_pattern, min_support, frequent_patterns)
+
+def fp_growth(transactions, min_support):
+    tree, header = build_fp_tree(transactions, min_support)
+    frequent_patterns = []
+    if header:
+        mine_fp_tree(header, [], min_support, frequent_patterns)
+    return frequent_patterns
+
+transactions = [
+    ['I1', 'I2', 'I5'],
+    ['I2', 'I4'],
+    ['I2', 'I3'],
+    ['I1', 'I2', 'I4'],
+    ['I1', 'I3'],
+    ['I2', 'I3'],
+    ['I1', 'I3'],
+    ['I1', 'I2', 'I3', 'I5'],
+    ['I1', 'I2', 'I3']
+]
+
+min_support = 2
+patterns = fp_growth(transactions, min_support)
+
+print("Frequent Patterns:")
+for pattern, count in patterns:
+    print(f"{pattern}: {count}")
+
